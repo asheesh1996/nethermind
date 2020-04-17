@@ -23,8 +23,8 @@ namespace Nethermind.Core
     public class Bloom : IEquatable<Bloom>
     {
         public static readonly Bloom Empty = new Bloom();
-        public const int BitLength = 2048;
-        public const int ByteLength = BitLength / 8;
+        public int BitLength = 2048;
+        public int ByteLength => BitLength / 8;
         
         public Bloom()
         {
@@ -39,24 +39,25 @@ namespace Nethermind.Core
 
         public Bloom(byte[] bytes)
         {
+            BitLength = bytes.Length * 8;
             Bytes = bytes;
         }
 
         public byte[] Bytes { get; }
 
-        public void Set(byte[] sequence)
+        public void Set(Span<byte> sequence)
         {
             Set(sequence, null);
         }
         
-        private void Set(byte[] sequence, Bloom masterBloom)
+        private void Set(Span<byte> sequence, Bloom masterBloom)
         {
             if (ReferenceEquals(this, Empty))
             {
                 throw new InvalidOperationException("An attempt was made to update Bloom.Empty constant");
             }
             
-            BloomExtract indexes = GetExtract(sequence);
+            BloomExtract indexes = GetExtract(sequence, BitLength);
             Set(indexes.Index1);
             Set(indexes.Index2);
             Set(indexes.Index3);
@@ -70,7 +71,7 @@ namespace Nethermind.Core
         
         public bool Matches(byte[] sequence)
         {
-            BloomExtract indexes = GetExtract(sequence);
+            BloomExtract indexes = GetExtract(sequence, BitLength);
             return Matches(ref indexes);
         }
         
@@ -188,11 +189,11 @@ namespace Nethermind.Core
         
         public  static BloomExtract GetExtract(Keccak topic) => GetExtract(topic.Bytes);
 
-        private static BloomExtract GetExtract(byte[] sequence)
+        private static BloomExtract GetExtract(Span<byte> sequence, int bitLength = 2048)
         {
             int GetIndex(Span<byte> bytes, int index1, int index2)
             {
-                return 2047 - ((bytes[index1] << 8) + bytes[index2]) % 2048;
+                return (bitLength - 1) - ((bytes[index1] << 8) + bytes[index2]) % bitLength;
             }
 
             var keccakBytes = ValueKeccak.Compute(sequence).BytesAsSpan;
@@ -374,7 +375,7 @@ namespace Nethermind.Core
         {
             int GetIndex(Span<byte> bytes, int index1, int index2)
             {
-                return 2047 - ((bytes[index1] << 8) + bytes[index2]) % 2048;
+                return (BitLength - 1) - ((bytes[index1] << 8) + bytes[index2]) % BitLength;
             }
 
             var keccakBytes = ValueKeccak.Compute(sequence).BytesAsSpan;
