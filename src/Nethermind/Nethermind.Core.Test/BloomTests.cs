@@ -35,6 +35,16 @@ namespace Nethermind.Core.Test
             Bloom bloom2 = new Bloom(bytes);
             Assert.AreEqual(bloom.ToString(), bloom2.ToString());
         }
+        
+        [Test]
+        public void Test_big()
+        {
+            Bloom bloom = new Bloom(new byte[1024 * 1024 * 256]);
+            bloom.Set(Keccak.OfAnEmptyString.Bytes);
+            byte[] bytes = bloom.Bytes;
+            Bloom bloom2 = new Bloom(bytes);
+            Assert.AreEqual(bloom.ToString(), bloom2.ToString());
+        }
 
         [TestCase(1, 1)]
         [TestCase(1, 10)]

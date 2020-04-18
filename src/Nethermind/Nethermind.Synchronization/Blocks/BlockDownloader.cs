@@ -94,15 +94,15 @@ namespace Nethermind.Synchronization.Blocks
                 SyncEvent?.Invoke(this, new SyncEventArgs(bestPeer.SyncPeer, Synchronization.SyncEvent.Started));
                 if ((blocksRequest.Options & DownloaderOptions.WithBodies) == DownloaderOptions.WithBodies)
                 {
-                    if (Logger.IsDebug) Logger.Debug("Downloading bodies");
+                    if (Logger.IsWarn) Logger.Warn("Downloading bodies");
                     await DownloadBlocks(bestPeer, blocksRequest, linkedCancellation.Token).ContinueWith(t => HandleSyncRequestResult(t, bestPeer));
-                    if (Logger.IsDebug) Logger.Debug("Finished downloading bodies");
+                    if (Logger.IsWarn) Logger.Warn("Finished downloading bodies");
                 }
                 else
                 {
-                    if (Logger.IsDebug) Logger.Debug("Downloading headers");
+                    if (Logger.IsWarn) Logger.Warn("Downloading headers");
                     await DownloadHeaders(bestPeer, blocksRequest, linkedCancellation.Token).ContinueWith(t => HandleSyncRequestResult(t, bestPeer));
-                    if (Logger.IsDebug) Logger.Debug("Finished downloading headers");
+                    if (Logger.IsWarn) Logger.Warn("Finished downloading headers");
                 }
             }
             finally
@@ -182,13 +182,14 @@ namespace Nethermind.Synchronization.Blocks
                         return 0;
                     }
 
-                    if (_logger.IsTrace) _logger.Trace($"Received {currentHeader} from {bestPeer:s}");
+                    // if (_logger.IsWarn) _logger.Warn($"Received {currentHeader.ToString(BlockHeader.Format.Short)} from {bestPeer:s}");
                     bool isValid = i > 1 ? _blockValidator.ValidateHeader(currentHeader, headers[i - 1], false) : _blockValidator.ValidateHeader(currentHeader, false);
                     if (!isValid)
                     {
                         throw new EthSyncException($"{bestPeer} sent a block {currentHeader.ToString(BlockHeader.Format.Short)} with an invalid header");
                     }
 
+                    // if (_logger.IsWarn) _logger.Warn($"Inserting {currentHeader.ToString(BlockHeader.Format.Short)} from {bestPeer:s}");
                     if (HandleAddResult(bestPeer, currentHeader, i == 0, _blockTree.Insert(currentHeader)))
                     {
                         headersSynced++;
@@ -197,6 +198,8 @@ namespace Nethermind.Synchronization.Blocks
                     currentNumber = currentNumber + 1;
                 }
 
+                _logger.Warn($"Heders synced {headersSynced}");
+                
                 if (headersSynced > 0)
                 {
                     _syncReport.FullSyncBlocksDownloaded.Update(_blockTree.BestSuggestedHeader?.Number ?? 0);
@@ -350,7 +353,7 @@ namespace Nethermind.Synchronization.Blocks
                     || (downloadTask.Exception?.InnerExceptions.Any(x => x is TimeoutException) ?? false)
                     || (downloadTask.Exception?.InnerExceptions.Any(x => x.InnerException is TimeoutException) ?? false))
                 {
-                    if (_logger.IsTrace) _logger.Error($"Failed to retrieve {entities} when synchronizing (Timeout)", downloadTask.Exception);
+                    if (_logger.IsWarn) _logger.Error($"Failed to retrieve {entities} when synchronizing (Timeout)", downloadTask.Exception);
                     _syncBatchSize.Shrink();
                 }
                 else

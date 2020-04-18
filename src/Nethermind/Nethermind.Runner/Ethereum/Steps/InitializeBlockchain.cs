@@ -98,7 +98,7 @@ namespace Nethermind.Runner.Ethereum.Steps
 
             var fileStoreFactory = initConfig.DiagnosticMode == DiagnosticMode.MemDb
                 ? (IFileStoreFactory) new InMemoryDictionaryFileStoreFactory()
-                : new FixedSizeFileStoreFactory(Path.Combine(initConfig.BaseDbPath, DbNames.Bloom), DbNames.Bloom, Bloom.ByteLength);
+                : new FixedSizeFileStoreFactory(Path.Combine(initConfig.BaseDbPath, DbNames.Bloom), DbNames.Bloom, Bloom.StandardByteLength);
 
             _context.BloomStorage = bloomConfig.Index
                 ? new BloomStorage(bloomConfig, _context.DbProvider.BloomDb, fileStoreFactory)

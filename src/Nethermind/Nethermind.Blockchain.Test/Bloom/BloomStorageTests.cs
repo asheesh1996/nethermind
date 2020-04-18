@@ -193,7 +193,7 @@ namespace Nethermind.Blockchain.Test.Bloom
 
             public int Read(long index, Span<byte> element)
             {
-                return Core.Bloom.ByteLength;
+                return Core.Bloom.StandardByteLength;
             }
 
             public IFileReader GetFileReader()

@@ -23,8 +23,9 @@ namespace Nethermind.Core
     public class Bloom : IEquatable<Bloom>
     {
         public static readonly Bloom Empty = new Bloom();
-        public int BitLength = 2048;
-        public int ByteLength => BitLength / 8;
+        public long BitLength = 2048;
+        public long ByteLength => BitLength / 8;
+        public static int StandardByteLength => 2048 / 8;
         
         public Bloom()
         {
@@ -39,7 +40,7 @@ namespace Nethermind.Core
 
         public Bloom(byte[] bytes)
         {
-            BitLength = bytes.Length * 8;
+            BitLength = (long)bytes.Length * 8;
             Bytes = bytes;
         }
 
@@ -163,18 +164,18 @@ namespace Nethermind.Core
             return false;
         }
 
-        private bool Get(int index)
+        private bool Get(long index)
         {
-            int bytePosition = index / 8;
-            int shift = index % 8;
-            return Bytes[bytePosition].GetBit(shift);
+            long bytePosition = index / 8;
+            long shift = index % 8;
+            return Bytes[(int)bytePosition].GetBit((int)shift);
         }
         
-        internal void Set(int index)
+        internal void Set(long index)
         {
-            int bytePosition = index / 8;
-            int shift = index % 8;
-            Bytes[bytePosition].SetBit(shift);
+            long bytePosition = index / 8;
+            long shift = index % 8;
+            Bytes[(int)bytePosition].SetBit((int)shift);
         }
         
         public bool Matches(Address address) => Matches(address.Bytes);
@@ -189,9 +190,9 @@ namespace Nethermind.Core
         
         public  static BloomExtract GetExtract(Keccak topic) => GetExtract(topic.Bytes);
 
-        private static BloomExtract GetExtract(Span<byte> sequence, int bitLength = 2048)
+        private static BloomExtract GetExtract(Span<byte> sequence, long bitLength = 2048)
         {
-            int GetIndex(Span<byte> bytes, int index1, int index2)
+            long GetIndex(Span<byte> bytes, int index1, int index2)
             {
                 return (bitLength - 1) - ((bytes[index1] << 8) + bytes[index2]) % bitLength;
             }
@@ -203,16 +204,16 @@ namespace Nethermind.Core
         
         public struct BloomExtract
         {
-            public BloomExtract(int index1, int index2, int index3)
+            public BloomExtract(long index1, long index2, long index3)
             {
                 Index1 = index1;
                 Index2 = index2;
                 Index3 = index3;
             }
             
-            public int Index1 { get; }
-            public int Index2 { get; }
-            public int Index3 { get; }
+            public long Index1 { get; }
+            public long Index2 { get; }
+            public long Index3 { get; }
         }
     }
 
@@ -345,18 +346,19 @@ namespace Nethermind.Core
             return false;
         }
 
-        private bool Get(int index)
+        private bool Get(long index)
         {
-            int bytePosition = index / 8;
-            int shift = index % 8;
-            return Bytes[bytePosition].GetBit(shift);
+            long bytePosition = index / 8;
+            long shift = index % 8;
+            return Bytes[(int)bytePosition].GetBit((int)shift);
         }
 
-        private void Set(int index)
+        private void Set(long index)
         {
-            int bytePosition = index / 8;
-            int shift = index % 8;
-            Bytes[bytePosition].SetBit(shift);
+            long bytePosition = index / 8;
+            long shift = index % 8;
+            int bytePositionInt = (int) bytePosition;
+            Bytes[bytePositionInt].SetBit((int)shift);
         }
 
         public bool Matches(Address address) => Matches(address.Bytes);

@@ -257,10 +257,10 @@ namespace Nethermind.Runner.Ethereum.Steps.Migrations
                 for (int index = 0; index < _averages.Length; index++)
                 {
                     var average = _averages[index];
-                    _builder.Append((average.Value / Bloom.BitLength).ToString("P2"));
+                    _builder.Append((average.Value / Bloom.StandardByteLength * 8).ToString("P2"));
                     decimal count = 0;
                     decimal length = 0;
-                    decimal safeBitCount = Bloom.BitLength * 0.6m;
+                    decimal safeBitCount = Bloom.StandardByteLength * 8 * 0.6m;
                     foreach (var bucket in average.Buckets)
                     {
                         if (bucket.Key > safeBitCount)

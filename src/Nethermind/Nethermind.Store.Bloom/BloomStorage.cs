@@ -251,7 +251,7 @@ namespace Nethermind.Store.Bloom
             private readonly IFileStore _fileStore;
             private readonly bool _migrationStatistics;
             private readonly LruCache<long, Core.Bloom> _cache;
-            private readonly byte[] _bytes = new byte[Core.Bloom.ByteLength];
+            private readonly byte[] _bytes = new byte[Core.Bloom.StandardByteLength];
             private int _needsFlush = 0;
 
             public BloomStorageLevel(IFileStore fileStore, in byte level, in int levelElementSize, in int levelMultiplier, bool migrationStatistics)
@@ -272,7 +272,7 @@ namespace Nethermind.Store.Bloom
                 if (existingBloom == null)
                 {
                     var bytesRead = _fileStore.Read(bucket, _bytes);
-                    var bloomRead = bytesRead == Core.Bloom.ByteLength;
+                    var bloomRead = bytesRead == Core.Bloom.StandardByteLength;
                     existingBloom = bloomRead ? new Core.Bloom(_bytes) : new Core.Bloom();
                 }
 
@@ -430,7 +430,7 @@ namespace Nethermind.Store.Bloom
                     else
                     {
                         var storageLevel = _storageLevels[CurrentLevel];
-                        return storageLevel.Reader.Read(storageLevel.Storage.GetBucket(_currentPosition), _bloom.Bytes) == Core.Bloom.ByteLength ? _bloom : Core.Bloom.Empty;
+                        return storageLevel.Reader.Read(storageLevel.Storage.GetBucket(_currentPosition), _bloom.Bytes) == Core.Bloom.StandardByteLength ? _bloom : Core.Bloom.Empty;
                     }
                 }
             }

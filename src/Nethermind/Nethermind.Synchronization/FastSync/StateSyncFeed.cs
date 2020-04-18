@@ -576,7 +576,7 @@ namespace Nethermind.Synchronization.FastSync
                         HandleTrieNode(currentStateSyncItem, currentResponseItem, ref invalidNodes);
                     }
 
-                    int currentOf1000 = Interlocked.Increment(ref _currentOf1000);
+                    int currentOf1000 = Interlocked.Increment(ref _currentOf1000) % 1000;
                     _last1000[currentOf1000] = (decimal) nonEmptyResponses / batch.RequestedNodes.Length;
                     decimal average = 0;
                     lock (_last1000)
@@ -589,6 +589,8 @@ namespace Nethermind.Synchronization.FastSync
                         average /= _last1000.Length;
                     }
 
+                    _logger.Warn($"Average fill is {average:P2}");
+                    
                     if (average < 0.33m)
                     {
                         _noResponsesInARow++;
