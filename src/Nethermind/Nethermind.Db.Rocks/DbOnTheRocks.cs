@@ -130,12 +130,12 @@ namespace Nethermind.Db.Rocks
              */
             options.SetMaxBackgroundCompactions(Environment.ProcessorCount);
 
-            //options.SetMaxOpenFiles(32);
+            options.SetMaxOpenFiles(-1);
             ulong writeBufferSize = ReadConfig<ulong>(dbConfig, nameof(dbConfig.WriteBufferSize));
             options.SetWriteBufferSize(writeBufferSize);
             int writeBufferNumber = (int) ReadConfig<uint>(dbConfig, nameof(dbConfig.WriteBufferNumber));
             options.SetMaxWriteBufferNumber(writeBufferNumber);
-            options.SetMinWriteBufferNumberToMerge(2);
+            options.SetMinWriteBufferNumberToMerge(1);
 
             lock (DbsByPath)
             {
