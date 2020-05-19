@@ -2075,8 +2075,8 @@ namespace Nethermind.Evm
                         else
                         {
                             _logger.Warn($"ACCOUNT EXISTS with storage root {_state.GetStorageRoot(env.ExecutingAccount)}");
-                            _logger.Warn($"STORAGE AT {_storage.Get(new StorageCell(env.ExecutingAccount, UInt256.Parse("298709185495103587162248569515177843705760650566"))).ToHexString()}");
-                            _logger.Warn($"STORAGE AT {_storage.Get(new StorageCell(env.ExecutingAccount, UInt256.Parse("22608"))).ToHexString()}");
+                            _logger.Warn($"STORAGE AT 298709185495103587162248569515177843705760650566 {_storage.Get(new StorageCell(env.ExecutingAccount, UInt256.Parse("298709185495103587162248569515177843705760650566"))).ToHexString()}");
+                            _logger.Warn($"STORAGE AT 22608 {_storage.Get(new StorageCell(env.ExecutingAccount, UInt256.Parse("22608"))).ToHexString()}");
                         }
                         
                         stack.PopUInt256(out UInt256 value);
@@ -2146,6 +2146,10 @@ namespace Nethermind.Evm
                         {
                             _logger.Warn($"Emptying storage root of an existing account {contractAddress} with NONCE {_state.GetNonce(contractAddress)} and code length {GetCachedCodeInfo(contractAddress)?.MachineCode?.Length}");
                             _state.UpdateStorageRoot(contractAddress, Keccak.EmptyTreeHash);
+                        }
+                        else
+                        {
+                            _logger.Warn($"Creating new account at {accountExists}");
                         }
 
                         _state.SubtractFromBalance(env.ExecutingAccount, value, spec);
