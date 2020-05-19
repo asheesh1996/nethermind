@@ -77,13 +77,13 @@ namespace Nethermind.Evm
         private void Execute(Transaction transaction, BlockHeader block, ITxTracer txTracer, bool isCall)
         {
             // if (transaction.Hash == new Keccak(Bytes.FromHexString("0xb03abe08363d4245ecc02c93033c4d52e960463e8f49df33a7b5c345bfb87ce7")))
-            if (transaction.Hash == new Keccak(Bytes.FromHexString("0x5753e61a5ebc2259eadcad4585fde5b5d399dca1d376f81364ffacda3942a7f3")))
-            {
-                GethTraceOptions options = GethTraceOptions.Default;
-                options.DisableMemory = true;
-                options.DisableStack = true;
-                txTracer = new GethLikeTxTracer(options);
-            }
+            // if (transaction.Hash == new Keccak(Bytes.FromHexString("0x5753e61a5ebc2259eadcad4585fde5b5d399dca1d376f81364ffacda3942a7f3")))
+            // {
+            //     GethTraceOptions options = GethTraceOptions.Default;
+            //     options.DisableMemory = true;
+            //     options.DisableStack = true;
+            //     txTracer = new GethLikeTxTracer(options);
+            // }
 
             var notSystemTransaction = !transaction.IsSystem();
             var wasSenderAccountCreatedInsideACall = false;
