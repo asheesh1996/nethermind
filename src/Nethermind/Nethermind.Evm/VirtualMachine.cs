@@ -1659,7 +1659,7 @@ namespace Nethermind.Evm
                         {
                             if (_txTracer is GethLikeTxTracer)
                             {
-                                _logger.Warn($"NET METERED SSTORE: NEW {newValue} | CURRENT {currentValue}");    
+                                _logger.Warn($"NET METERED SSTORE: NEW {newValue.ToHexString()} | CURRENT {currentValue.ToHexString()}");    
                             }
                             
                             if (newSameAsCurrent)
@@ -1688,7 +1688,7 @@ namespace Nethermind.Evm
 
                                 if (_txTracer is GethLikeTxTracer)
                                 {
-                                    _logger.Warn($"NET METERED SSTORE: NEW {newValue} | CURRENT {currentValue} | ORIGINAL {originalValue}");    
+                                    _logger.Warn($"NET METERED SSTORE: NEW {newValue.ToHexString()} | CURRENT {currentValue.ToHexString()} | ORIGINAL {originalValue.ToHexString()}");    
                                 }
                                 
                                 bool currentSameAsOriginal = Bytes.AreEqual(originalValue, currentValue);
