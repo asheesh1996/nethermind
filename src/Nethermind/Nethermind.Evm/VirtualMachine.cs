@@ -2151,7 +2151,7 @@ namespace Nethermind.Evm
                         {
                             _logger.Warn($"Emptying storage root of a dead account {contractAddress} with NONCE {_state.GetNonce(contractAddress)} and code length {GetCachedCodeInfo(contractAddress)?.MachineCode?.Length}");
                             // _logger.Warn($"Emptying storage root of a dead account {contractAddress} with NONCE {_state.GetNonce(contractAddress)} and code length {GetCachedCodeInfo(contractAddress)?.MachineCode?.Length}");
-                            // _state.UpdateStorageRoot(contractAddress, Keccak.EmptyTreeHash);
+                            _state.UpdateStorageRoot(contractAddress, Keccak.EmptyTreeHash);
                         }
                         else
                         {
