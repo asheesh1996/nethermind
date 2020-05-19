@@ -317,7 +317,7 @@ namespace Nethermind.Evm
                 block.GasUsed += spentGas;
             }
 
-            _logger.Warn($"Transaction used {spentGas}");
+            _logger.Warn($"Transaction {transaction.Hash} used {spentGas}");
             if (txTracer.IsTracingReceipt)
             {
                 Keccak stateRoot = null;
