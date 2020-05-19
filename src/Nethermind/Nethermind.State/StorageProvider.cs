@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Nethermind.Core;
 using Nethermind.Core.Crypto;
 using Nethermind.Core.Extensions;
@@ -73,6 +74,18 @@ namespace Nethermind.State
         public void Set(StorageCell storageCell, byte[] newValue)
         {
             PushUpdate(storageCell, newValue);
+        }
+        
+        public void RecreateStorage(Address address)
+        {
+            HashSet<StorageCell> cellsToRemove = new HashSet<StorageCell>(_intraBlockCache.Keys.Where(s => s.Address == address).ToArray());
+            foreach (StorageCell storageCell in cellsToRemove)
+            {
+                _intraBlockCache.Remove(storageCell);
+                _originalValues.Remove(storageCell);
+            }
+
+            _storages.Remove(address);
         }
 
         private Keccak RecalculateRootHash(Address address)
