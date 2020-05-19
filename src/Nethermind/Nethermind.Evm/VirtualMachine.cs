@@ -1659,14 +1659,14 @@ namespace Nethermind.Evm
                         {
                             if (_txTracer is GethLikeTxTracer)
                             {
-                                _logger.Warn($"NET METERED SSTORE: NEW {newValue.ToHexString()} | CURRENT {currentValue.ToHexString()}");    
+                                _logger.Warn($"NET METERED SSTORE for {storageCell.Address} {storageCell.Index}");    
                             }
                             
                             if (newSameAsCurrent)
                             {
                                 if (_txTracer is GethLikeTxTracer)
                                 {
-                                    _logger.Warn("NEW SAME AS CURRENT");    
+                                    _logger.Warn("NEW SAME AS CURRENT : NEW {newValue.ToHexString()} | CURRENT {currentValue.ToHexString()}");    
                                 }
                                 
                                 long netMeteredStoreCost = spec.IsEip2200Enabled ? GasCostOf.SStoreNetMeteredEip2200 : GasCostOf.SStoreNetMeteredEip1283;
@@ -2072,6 +2072,11 @@ namespace Nethermind.Evm
                         {
                             _state.CreateAccount(env.ExecutingAccount, UInt256.Zero);
                         }
+                        else
+                        {
+                            _logger.Warn("ACCOUNT EXISTS");
+                        }
+                        
 
                         stack.PopUInt256(out UInt256 value);
                         stack.PopUInt256(out UInt256 memoryPositionOfInitCode);
