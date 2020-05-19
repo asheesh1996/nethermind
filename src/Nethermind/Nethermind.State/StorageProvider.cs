@@ -81,6 +81,7 @@ namespace Nethermind.State
             HashSet<StorageCell> cellsToRemove = new HashSet<StorageCell>(_intraBlockCache.Keys.Where(s => s.Address == address).ToArray());
             foreach (StorageCell storageCell in cellsToRemove)
             {
+                _logger.Warn($"Removing storage cell {storageCell}");
                 _intraBlockCache.Remove(storageCell);
                 _originalValues.Remove(storageCell);
             }
