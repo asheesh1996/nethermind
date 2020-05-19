@@ -27,6 +27,7 @@ using Nethermind.Core.Specs;
 using Nethermind.Dirichlet.Numerics;
 using Nethermind.Evm.Precompiles;
 using Nethermind.Evm.Tracing;
+using Nethermind.Evm.Tracing.GethStyle;
 using Nethermind.Logging;
 using Nethermind.State;
 
@@ -1656,8 +1657,18 @@ namespace Nethermind.Evm
                         }
                         else // net metered
                         {
+                            if (_txTracer is GethLikeTxTracer)
+                            {
+                                _logger.Warn($"NET METERED SSTORE: NEW {newValue} | CURRENT {currentValue}");    
+                            }
+                            
                             if (newSameAsCurrent)
                             {
+                                if (_txTracer is GethLikeTxTracer)
+                                {
+                                    _logger.Warn("NEW SAME AS CURRENT");    
+                                }
+                                
                                 long netMeteredStoreCost = spec.IsEip2200Enabled ? GasCostOf.SStoreNetMeteredEip2200 : GasCostOf.SStoreNetMeteredEip1283;
                                 if (!UpdateGas(netMeteredStoreCost, ref gasAvailable))
                                 {
@@ -1667,9 +1678,19 @@ namespace Nethermind.Evm
                             }
                             else // eip1283enabled, C != N
                             {
+                                if (_txTracer is GethLikeTxTracer)
+                                {
+                                    _logger.Warn("NEW NOT SAME AS CURRENT");    
+                                }
+                                
                                 byte[] originalValue = _storage.GetOriginal(storageCell);
                                 bool originalIsZero = originalValue.IsZero();
 
+                                if (_txTracer is GethLikeTxTracer)
+                                {
+                                    _logger.Warn($"NET METERED SSTORE: NEW {newValue} | CURRENT {currentValue} | ORIGINAL {originalValue}");    
+                                }
+                                
                                 bool currentSameAsOriginal = Bytes.AreEqual(originalValue, currentValue);
                                 if (currentSameAsOriginal)
                                 {
