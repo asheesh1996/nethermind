@@ -1666,7 +1666,7 @@ namespace Nethermind.Evm
                             {
                                 if (_txTracer is GethLikeTxTracer)
                                 {
-                                    _logger.Warn("NEW SAME AS CURRENT : NEW {newValue.ToHexString()} | CURRENT {currentValue.ToHexString()}");    
+                                    _logger.Warn($"NEW SAME AS CURRENT : NEW {newValue.ToHexString()} | CURRENT {currentValue.ToHexString()}");    
                                 }
                                 
                                 long netMeteredStoreCost = spec.IsEip2200Enabled ? GasCostOf.SStoreNetMeteredEip2200 : GasCostOf.SStoreNetMeteredEip1283;
@@ -2074,10 +2074,11 @@ namespace Nethermind.Evm
                         }
                         else
                         {
-                            _logger.Warn("ACCOUNT EXISTS");
+                            _logger.Warn($"ACCOUNT EXISTS with storage root {_state.GetStorageRoot(env.ExecutingAccount)}");
+                            _logger.Warn($"STORAGE AT {_storage.Get(new StorageCell(env.ExecutingAccount, UInt256.Parse("298709185495103587162248569515177843705760650566")))}");
+                            _logger.Warn($"STORAGE AT {_storage.Get(new StorageCell(env.ExecutingAccount, UInt256.Parse("22608")))}");
                         }
                         
-
                         stack.PopUInt256(out UInt256 value);
                         stack.PopUInt256(out UInt256 memoryPositionOfInitCode);
                         stack.PopUInt256(out UInt256 initCodeLength);
