@@ -128,6 +128,8 @@ namespace Nethermind.State
         public bool IsDeadAccount(Address address)
         {
             Account account = GetThroughCache(address);
+            _logger.Warn($"Checking is dead account on {address} -> B: {account?.Balance} N: {account?.Nonce} SR: {account?.StorageRoot}");
+            
             return account?.IsEmpty ?? true;
         }
 

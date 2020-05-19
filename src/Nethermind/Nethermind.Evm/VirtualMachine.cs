@@ -2151,8 +2151,8 @@ namespace Nethermind.Evm
                         {
                             _logger.Warn($"Recreating storage of a dead account {contractAddress} with NONCE {_state.GetNonce(contractAddress)} and code length {GetCachedCodeInfo(contractAddress)?.MachineCode?.Length}");
                             _storage.RecreateStorage(contractAddress);
-                            _logger.Warn($"STORAGE AT {contractAddress}.298709185495103587162248569515177843705760650566 {_storage.Get(new StorageCell(contractAddress, UInt256.Parse("298709185495103587162248569515177843705760650566"))).ToHexString()}");
-                            _logger.Warn($"STORAGE AT {contractAddress}.22608 {_storage.Get(new StorageCell(contractAddress, UInt256.Parse("22608"))).ToHexString()}");
+                            // _logger.Warn($"STORAGE AT {contractAddress}.298709185495103587162248569515177843705760650566 {_storage.Get(new StorageCell(contractAddress, UInt256.Parse("298709185495103587162248569515177843705760650566"))).ToHexString()}");
+                            // _logger.Warn($"STORAGE AT {contractAddress}.22608 {_storage.Get(new StorageCell(contractAddress, UInt256.Parse("22608"))).ToHexString()}");
                             // _logger.Warn($"ACCOUNT EXISTS with storage root {_state.GetStorageRoot(contractAddress)}");
                             // _logger.Warn($"Emptying storage root of a dead account {contractAddress} with NONCE {_state.GetNonce(contractAddress)} and code length {GetCachedCodeInfo(contractAddress)?.MachineCode?.Length}");
                             // _state.UpdateStorageRoot(contractAddress, Keccak.EmptyTreeHash);
