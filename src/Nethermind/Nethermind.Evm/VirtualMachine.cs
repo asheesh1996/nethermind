@@ -2155,7 +2155,7 @@ namespace Nethermind.Evm
                         }
                         else
                         {
-                            _logger.Warn($"Creating new account at {accountExists}");
+                            _logger.Warn($"Creating new account at {contractAddress} with BALANCE {_state.GetNonce(contractAddress)} NONCE {_state.GetNonce(contractAddress)} and code length {GetCachedCodeInfo(contractAddress)?.MachineCode?.Length} and storage root {_state.GetStorageRoot(contractAddress)}");
                         }
 
                         _state.SubtractFromBalance(env.ExecutingAccount, value, spec);
