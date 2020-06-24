@@ -368,6 +368,7 @@ namespace Nethermind.Synchronization.Blocks
         private async Task<BlockHeader[]> RequestHeaders(PeerInfo peer, CancellationToken cancellation, long currentNumber, int headersToRequest)
         {
             _sealValidator.HintValidationRange(_sealValidatorUserGuid, currentNumber - 1028, currentNumber + 30000);
+            _logger.Info($"Sending request for {headersToRequest} headers to {peer}");
             Task<BlockHeader[]> headersRequest = peer.SyncPeer.GetBlockHeaders(currentNumber, headersToRequest, 0, cancellation);
             await headersRequest.ContinueWith(t => DownloadFailHandler(t, "headers"), cancellation);
 
@@ -384,7 +385,9 @@ namespace Nethermind.Synchronization.Blocks
             int offset = 0;
             while (offset != context.NonEmptyBlockHashes.Count)
             {
+                
                 IList<Keccak> hashesToRequest = context.GetHashesByOffset(offset, peer.MaxBodiesPerRequest());
+                _logger.Info($"Sending request for {hashesToRequest.Count} bodies to {peer}");
                 Task<BlockBody[]> getBodiesRequest = peer.SyncPeer.GetBlockBodies(hashesToRequest, cancellation);
                 await getBodiesRequest.ContinueWith(t => DownloadFailHandler(getBodiesRequest, "bodies"));
                 BlockBody[] result = getBodiesRequest.Result;
@@ -403,6 +406,7 @@ namespace Nethermind.Synchronization.Blocks
             while (offset != context.NonEmptyBlockHashes.Count)
             {
                 IList<Keccak> hashesToRequest = context.GetHashesByOffset(offset, peer.MaxReceiptsPerRequest());
+                _logger.Info($"Sending request for {hashesToRequest.Count} receipts to {peer}");
                 Task<TxReceipt[][]> request = peer.SyncPeer.GetReceipts(hashesToRequest, cancellation);
                 await request.ContinueWith(t => DownloadFailHandler(request, "bodies"));
 

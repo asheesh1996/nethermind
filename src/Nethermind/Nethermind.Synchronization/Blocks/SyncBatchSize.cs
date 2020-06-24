@@ -56,7 +56,7 @@ namespace Nethermind.Synchronization.Blocks
         public void Shrink()
         {
             Current = Math.Max(Min, Current / 2);
-            if (_logger.IsDebug) _logger.Debug($"Changing sync batch size to {Current}");
+            if (_logger.IsInfo) _logger.Info($"Changing sync batch size to {Current}");
         }
     }
 }
