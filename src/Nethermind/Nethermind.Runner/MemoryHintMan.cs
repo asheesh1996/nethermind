@@ -286,7 +286,7 @@ namespace Nethermind.Runner
                     }
                 }
 
-                networkConfig.NettyArenaOrder = Math.Min(11, targetNettyArenaOrder);
+                networkConfig.NettyArenaOrder = Math.Min(INetworkConfig.DefaultNettyArenaOrder, targetNettyArenaOrder);
             }
         }
 

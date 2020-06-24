@@ -32,9 +32,9 @@ namespace Nethermind.Runner.Test
         private const ulong GB = 1000 * 1000 * 1000;
         private const ulong MB = 1000 * 1000;
 
-        [TestCase(4 * GB, 2u, 11)]
-        [TestCase(4 * GB, 4u, 11)]
-        [TestCase(8 * GB, 1u, 11)]
+        [TestCase(4 * GB, 2u, 12)]
+        [TestCase(4 * GB, 4u, 12)]
+        [TestCase(8 * GB, 1u, 12)]
         [TestCase(1 * GB, 4u, 11)]
         [TestCase(512 * MB, 4u, 10)]
         [TestCase(256 * MB, 6u, 9)]
@@ -45,7 +45,7 @@ namespace Nethermind.Runner.Test
             MemoryHintMan memoryHintMan = new MemoryHintMan(LimboLogs.Instance);
             NetworkConfig networkConfig = new NetworkConfig();
             memoryHintMan.UpdateNetworkConfig(memoryHint, cpuCount, networkConfig);
-            networkConfig.NettyArenaOrder.Should().Be(expectedArenaOrder);
+            networkConfig.NettyArenaOrder.Should().Be(Math.Min(INetworkConfig.DefaultNettyArenaOrder, expectedArenaOrder));
         }
 
         [Test]

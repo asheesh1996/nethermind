@@ -20,7 +20,7 @@ namespace Nethermind.Network.Config
 {
     public interface INetworkConfig : IConfig
     {
-        public const int DefaultNettyArenaOrder = 11;
+        public const int DefaultNettyArenaOrder = 12;
         
         [ConfigItem(Description = "Use only if your node cannot resolve external IP automatically.", DefaultValue = "null")]
         string ExternalIp { get; set; }
