@@ -125,9 +125,11 @@ namespace Nethermind.Synchronization.ParallelSync
                             try
                             {
                                 // Logger.Warn($"Freeing allocation of {allocatedPeer}");
-                                Free(allocation);
                                 SyncResponseHandlingResult result = Feed.HandleResponse(request);
                                 ReactToHandlingResult(request, result, allocatedPeer);
+                                
+                                // Logger.Warn($"Allocation {allocation.Contexts} of {allocatedPeer} ended up with {result} for {request.ToString()}");
+                                Free(allocation);
                             }
                             catch (ObjectDisposedException)
                             {
@@ -184,6 +186,7 @@ namespace Nethermind.Synchronization.ParallelSync
                 case SyncResponseHandlingResult.Emptish:
                     break;
                 case SyncResponseHandlingResult.LesserQuality:
+                    Logger.Warn($"Reporting lesser quality for {peer} {Feed.Contexts}");
                     SyncPeerPool.ReportWeakPeer(peer, Feed.Contexts);
                     break;
                 case SyncResponseHandlingResult.NoProgress:

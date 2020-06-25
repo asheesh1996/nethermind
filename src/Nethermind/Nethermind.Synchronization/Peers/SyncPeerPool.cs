@@ -97,6 +97,7 @@ namespace Nethermind.Synchronization.Peers
 
         public void ReportBreachOfProtocol(PeerInfo peerInfo, string details)
         {
+            _logger.Warn($"Reporting breach of protocol for {peerInfo} {details}");
             /* since the allocations can have the peers dynamically changed
              * it may be hard for the external classes to ensure that the peerInfo is not null at the time when they report
              * so we decide to check for null here and not consider the scenario to be exceptional
@@ -118,9 +119,11 @@ namespace Nethermind.Synchronization.Peers
                 return;
             }
 
+            // _logger.Info($"Reporting weak peer {weakPeer}");
             AllocationContexts sleeps = weakPeer.IncreaseWeakness(allocationContexts);
             if (sleeps != AllocationContexts.None)
             {
+                // _logger.Info($"Putting {weakPeer} to sleep for {sleeps}");
                 weakPeer.PutToSleep(sleeps, DateTime.UtcNow);
             }
         }
@@ -262,7 +265,7 @@ namespace Nethermind.Synchronization.Peers
             {
                 if (allocation.Current?.SyncPeer.Node.Id == id)
                 {
-                    if (_logger.IsTrace) _logger.Trace($"Requesting peer cancel with {syncPeer.Node:c} on {allocation}");
+                    if (_logger.IsError) _logger.Error($"REMOVE PEER Requesting peer cancel with {syncPeer.Node:c} on {allocation}");
                     allocation.Cancel();
                 }
             }
@@ -274,6 +277,8 @@ namespace Nethermind.Synchronization.Peers
 
         public async Task<SyncPeerAllocation> Allocate(IPeerAllocationStrategy peerAllocationStrategy, AllocationContexts allocationContexts = AllocationContexts.All, int timeoutMilliseconds = 0)
         {
+            // _logger.Warn($"Allocating {peerAllocationStrategy.GetType().Name} for {allocationContexts}");
+            
             int tryCount = 1;
             DateTime startTime = DateTime.UtcNow;
 
@@ -290,13 +295,18 @@ namespace Nethermind.Synchronization.Peers
                             _replaceableAllocations.TryAdd(allocation, null);
                         }
 
+                        // _logger.Warn($"Allocated {peerAllocationStrategy.GetType().Name} for {allocationContexts} -> {allocation.Current}");
                         return allocation;
                     }
                 }
 
                 bool timeoutReached = timeoutMilliseconds == 0
                                       || (DateTime.UtcNow - startTime).TotalMilliseconds > timeoutMilliseconds;
-                if (timeoutReached) return SyncPeerAllocation.FailedAllocation;
+                if (timeoutReached)
+                {
+                    _logger.Warn($"Failed to allocate {peerAllocationStrategy.GetType().Name} for {allocationContexts}");
+                    return SyncPeerAllocation.FailedAllocation;
+                }
 
                 int waitTime = 10 * tryCount++;
                 
@@ -317,7 +327,7 @@ namespace Nethermind.Synchronization.Peers
         /// <param name="syncPeerAllocation">Allocation to free</param>
         public void Free(SyncPeerAllocation syncPeerAllocation)
         {
-            if (_logger.IsTrace) _logger.Trace($"Returning {syncPeerAllocation}");
+            // if (_logger.IsError) _logger.Error($"CANCEL Returning {syncPeerAllocation}");
 
             _replaceableAllocations.TryRemove(syncPeerAllocation, out _);
             syncPeerAllocation.Cancel();

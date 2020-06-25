@@ -94,15 +94,15 @@ namespace Nethermind.Synchronization.Blocks
                 SyncEvent?.Invoke(this, new SyncEventArgs(bestPeer.SyncPeer, Synchronization.SyncEvent.Started));
                 if ((blocksRequest.Options & DownloaderOptions.WithBodies) == DownloaderOptions.WithBodies)
                 {
-                    if (Logger.IsDebug) Logger.Debug("Downloading bodies");
+                    if (Logger.IsInfo) Logger.Debug("Downloading bodies");
                     await DownloadBlocks(bestPeer, blocksRequest, linkedCancellation.Token).ContinueWith(t => HandleSyncRequestResult(t, bestPeer));
-                    if (Logger.IsDebug) Logger.Debug("Finished downloading bodies");
+                    if (Logger.IsInfo) Logger.Debug("Finished downloading bodies");
                 }
                 else
                 {
-                    if (Logger.IsDebug) Logger.Debug("Downloading headers");
+                    if (Logger.IsInfo) Logger.Debug("Downloading headers");
                     await DownloadHeaders(bestPeer, blocksRequest, linkedCancellation.Token).ContinueWith(t => HandleSyncRequestResult(t, bestPeer));
-                    if (Logger.IsDebug) Logger.Debug("Finished downloading headers");
+                    if (Logger.IsInfo) Logger.Debug("Finished downloading headers");
                 }
             }
             finally
@@ -137,7 +137,7 @@ namespace Nethermind.Synchronization.Blocks
                     break;
                 }
 
-                if (_logger.IsDebug) _logger.Debug($"Headers request {currentNumber}+{headersToRequest} to peer {bestPeer} with {bestPeer.HeadNumber} blocks. Got {currentNumber} and asking for {headersToRequest} more.");
+                if (_logger.IsInfo) _logger.Info($"Headers request {currentNumber}+{headersToRequest} to peer {bestPeer} with {bestPeer.HeadNumber} blocks. Got {currentNumber} and asking for {headersToRequest} more.");
                 BlockHeader[] headers = await RequestHeaders(bestPeer, cancellation, currentNumber, headersToRequest);
 
                 BlockHeader startingPoint = headers[0] == null ? null : _blockTree.FindHeader(headers[0].Hash, BlockTreeLookupOptions.TotalDifficultyNotNeeded);
@@ -236,36 +236,51 @@ namespace Nethermind.Synchronization.Blocks
             // pivot number - 6 for uncle validation
             // long currentNumber = Math.Max(Math.Max(0, pivotNumber - 6), Math.Min(_blockTree.BestKnownNumber, bestPeer.HeadNumber - 1));
 
+            Logger.Error($"BEFORE WHILE - best peer td {bestPeer.TotalDifficulty}, ours {(_blockTree.BestSuggestedHeader?.TotalDifficulty ?? 0)}");
             while (bestPeer.TotalDifficulty > (_blockTree.BestSuggestedHeader?.TotalDifficulty ?? 0) && currentNumber <= bestPeer.HeadNumber)
             {
-                if (_logger.IsDebug) _logger.Debug($"Continue full sync with {bestPeer} (our best {_blockTree.BestKnownNumber})");
+                if (_logger.IsInfo) _logger.Info($"Continue full sync with {bestPeer} (our best {_blockTree.BestKnownNumber})");
 
                 long blocksLeft = bestPeer.HeadNumber - currentNumber - (blocksRequest.NumberOfLatestBlocksToBeIgnored ?? 0);
                 int headersToRequest = (int) Math.Min(blocksLeft + 1, _syncBatchSize.Current);
                 if (headersToRequest <= 1)
                 {
+                    Logger.Error($"BREAK WHILE - headers to request {headersToRequest}");
                     break;
                 }
 
                 headersToRequest = Math.Min(headersToRequest, bestPeer.MaxHeadersPerRequest());
-                if (_logger.IsTrace) _logger.Trace($"Full sync request {currentNumber}+{headersToRequest} to peer {bestPeer} with {bestPeer.HeadNumber} blocks. Got {currentNumber} and asking for {headersToRequest} more.");
+                if (_logger.IsInfo) _logger.Info($"Full sync request {currentNumber}+{headersToRequest} to peer {bestPeer} with {bestPeer.HeadNumber} blocks. Got {currentNumber} and asking for {headersToRequest} more.");
 
                 if (cancellation.IsCancellationRequested) return blocksSynced; // check before every heavy operation
+                Logger.Error($"AWAITING HEADERS from {bestPeer}, current {currentNumber}, requested {headersToRequest}");
                 BlockHeader[] headers = await RequestHeaders(bestPeer, cancellation, currentNumber, headersToRequest);
+                Logger.Error($"GOT HEADERS from {bestPeer}, current {currentNumber}, requested {headersToRequest}");
                 BlockDownloadContext context = new BlockDownloadContext(_specProvider, bestPeer, headers, downloadReceipts, receiptsRecovery);
 
-                if (cancellation.IsCancellationRequested) return blocksSynced; // check before every heavy operation
+
+                if (cancellation.IsCancellationRequested)
+                {
+                    Logger.Error($"CANCELLING - blocks synced {blocksSynced}");
+                    return blocksSynced; // check before every heavy operation
+                }
+
+                Logger.Error($"AWAITING BODIES - {context.Blocks.Length}");
                 await RequestBodies(bestPeer, cancellation, context);
+                Logger.Error($"GOT BODIES - {context.Blocks.Length}");
 
                 if (downloadReceipts)
                 {
                     if (cancellation.IsCancellationRequested) return blocksSynced; // check before every heavy operation
+                    Logger.Error($"AWAITING RECEIPTS - {context.Blocks.Length}");
                     await RequestReceipts(bestPeer, cancellation, context);
+                    Logger.Error($"GOT RECEIPTS - {context.Blocks.Length}");
                 }
 
                 _sinceLastTimeout++;
                 if (_sinceLastTimeout > 2)
                 {
+                    Logger.Error($"Expanding batch");
                     _syncBatchSize.Expand();
                 }
 
@@ -294,12 +309,12 @@ namespace Nethermind.Synchronization.Blocks
                 {
                     if (cancellation.IsCancellationRequested)
                     {
-                        if (_logger.IsTrace) _logger.Trace("Peer sync cancelled");
+                        if (_logger.IsInfo) _logger.Info("Peer sync cancelled");
                         break;
                     }
 
                     Block currentBlock = blocks[blockIndex];
-                    if (_logger.IsTrace) _logger.Trace($"Received {currentBlock} from {bestPeer}");
+                    if (_logger.IsInfo) _logger.Info($"Received {currentBlock} from {bestPeer}");
 
                     // can move this to block tree now?
                     if (!_blockValidator.ValidateSuggestedBlock(currentBlock))
@@ -340,6 +355,7 @@ namespace Nethermind.Synchronization.Blocks
                 }
             }
 
+            Logger.Error($"AFTER WHILE - blocks synced {blocksSynced}");
             return blocksSynced;
         }
 
@@ -350,7 +366,7 @@ namespace Nethermind.Synchronization.Blocks
                 _sinceLastTimeout = 0;
                 if (downloadTask.Exception?.Flatten().InnerExceptions.Any(x => x is TimeoutException) ?? false)
                 {
-                    if (_logger.IsTrace) _logger.Error($"Failed to retrieve {entities} when synchronizing (Timeout)", downloadTask.Exception);
+                    if (_logger.IsInfo) _logger.Error($"Failed to retrieve {entities} when synchronizing (Timeout)", downloadTask.Exception);
                     _syncBatchSize.Shrink();
                 }
 
@@ -385,7 +401,6 @@ namespace Nethermind.Synchronization.Blocks
             int offset = 0;
             while (offset != context.NonEmptyBlockHashes.Count)
             {
-                
                 IList<Keccak> hashesToRequest = context.GetHashesByOffset(offset, peer.MaxBodiesPerRequest());
                 _logger.Info($"Sending request for {hashesToRequest.Count} bodies to {peer}");
                 Task<BlockBody[]> getBodiesRequest = peer.SyncPeer.GetBlockBodies(hashesToRequest, cancellation);
@@ -487,7 +502,7 @@ namespace Nethermind.Synchronization.Blocks
 
             if (exceptions.Count > 0)
             {
-                if (_logger.IsDebug) _logger.Debug("Seal validation failure");
+                if (_logger.IsInfo) _logger.Info("Seal validation failure");
                 throw new AggregateException(exceptions);
             }
         }
@@ -550,22 +565,23 @@ namespace Nethermind.Synchronization.Blocks
                     string reason;
                     if (t.Exception != null && t.Exception.Flatten().InnerExceptions.Any(x => x is TimeoutException))
                     {
-                        if (_logger.IsDebug) _logger.Debug($"Block download from {peerInfo} timed out. {t.Exception?.Message}");
+                        if (_logger.IsInfo) _logger.Info($"Block download from {peerInfo} timed out. {t.Exception?.Message}");
                         reason = "timeout";
                     }
                     else if (t.Exception != null && t.Exception.Flatten().InnerExceptions.Any(x => x is TaskCanceledException))
                     {
-                        if (_logger.IsDebug) _logger.Debug($"Block download from {peerInfo} was canceled.");
+                        if (_logger.IsInfo) _logger.Info($"Block download from {peerInfo} was canceled.");
                         reason = "cancel";
                     }
                     else
                     {
-                        if (_logger.IsDebug) _logger.Error($"DEBUG/ERROR Block download from {peerInfo} failed. {t.Exception}");
+                        if (_logger.IsInfo) _logger.Error($"DEBUG/ERROR Block download from {peerInfo} failed. {t.Exception}");
                         reason = "sync fault";
                     }
 
                     if (peerInfo != null) // fix this for node data sync
                     {
+                        if (_logger.IsInfo) _logger.Warn($"Disconnecting {peerInfo} after syn failure");
                         peerInfo.SyncPeer.Disconnect(DisconnectReason.DisconnectRequested, reason);
                         // redirect sync event from block downloader here (move this one inside)
                         SyncEvent?.Invoke(this, new SyncEventArgs(peerInfo.SyncPeer, Synchronization.SyncEvent.Failed));
@@ -579,7 +595,7 @@ namespace Nethermind.Synchronization.Blocks
                     }
                     else
                     {
-                        if (_logger.IsTrace) _logger.Trace($"Blocks download from {peerInfo} canceled. Removing node from sync peers.");
+                        if (_logger.IsInfo) _logger.Info($"Blocks download from {peerInfo} canceled. Removing node from sync peers.");
                         if (peerInfo != null) // fix this for node data sync
                         {
                             SyncEvent?.Invoke(this, new SyncEventArgs(peerInfo.SyncPeer, Synchronization.SyncEvent.Cancelled));
@@ -588,7 +604,7 @@ namespace Nethermind.Synchronization.Blocks
 
                     break;
                 case { } t when t.IsCompletedSuccessfully:
-                    if (_logger.IsDebug) _logger.Debug($"Blocks download from {peerInfo} completed with progress {t.Result}.");
+                    if (_logger.IsInfo) _logger.Info($"Blocks download from {peerInfo} completed with progress {t.Result}.");
                     if (peerInfo != null) // fix this for node data sync
                     {
                         SyncEvent?.Invoke(this, new SyncEventArgs(peerInfo.SyncPeer, Synchronization.SyncEvent.Completed));
@@ -603,9 +619,11 @@ namespace Nethermind.Synchronization.Blocks
             SyncPeerAllocation allocation = await base.Allocate(request);
             CancellationTokenSource cancellation = new CancellationTokenSource();
             _allocationWithCancellation = new AllocationWithCancellation(allocation, cancellation);
-            
+
             allocation.Cancelled += AllocationOnCancelled;
             allocation.Replaced += AllocationOnReplaced;
+
+            _logger.Info($"Allocated {allocation} for block downloader");
             return allocation;
         }
 
@@ -623,19 +641,19 @@ namespace Nethermind.Synchronization.Blocks
             {
                 return;
             }
-            
+
             allocationWithCancellation.Cancel();
         }
-        
+
         private void AllocationOnReplaced(object sender, AllocationChangeEventArgs e)
         {
             if (e.Previous == null)
             {
-                if (_logger.IsDebug) _logger.Debug($"Allocating {e.Current} for the blocks sync allocation");
+                if (_logger.IsInfo) _logger.Info($"Allocating {e.Current} for the blocks sync allocation");
             }
             else
             {
-                if (_logger.IsDebug) _logger.Debug($"Replacing {e.Previous} with {e.Current} for the blocks sync allocation.");
+                if (_logger.IsInfo) _logger.Info($"Replacing {e.Previous} with {e.Current} for the blocks sync allocation.");
             }
 
             if (e.Previous != null)
@@ -660,7 +678,7 @@ namespace Nethermind.Synchronization.Blocks
                 Cancellation = cancellation;
                 _isDisposed = false;
             }
-            
+
             public CancellationTokenSource Cancellation { get; }
             public SyncPeerAllocation Allocation { get; }
 
@@ -673,7 +691,7 @@ namespace Nethermind.Synchronization.Blocks
             }
 
             private bool _isDisposed;
-            
+
             public void Dispose()
             {
                 if (!_isDisposed)

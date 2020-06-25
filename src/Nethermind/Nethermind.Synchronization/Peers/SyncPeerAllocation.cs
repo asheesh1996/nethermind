@@ -95,7 +95,7 @@ namespace Nethermind.Synchronization.Peers
 
         public override string ToString()
         {
-            return $"[Allocation|{Current}]";
+            return $"[Allocation|{Contexts}|{Current}]";
         }
     }
 }

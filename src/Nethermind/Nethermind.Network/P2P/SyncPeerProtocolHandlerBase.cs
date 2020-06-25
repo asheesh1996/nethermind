@@ -134,6 +134,8 @@ namespace Nethermind.Network.P2P
                 if (Logger.IsTrace) Logger.Trace($"{this} speed is {request.ResponseSize}/{elapsed} = {bytesPerMillisecond}");
                 StatsManager.ReportTransferSpeedEvent(Session.Node, TransferSpeedType.Bodies, bytesPerMillisecond);
 
+                Logger.Info($"Received {task.Result.Length} bodies out of {request.Message.BlockHashes.Count} with size {request.ResponseSize} from {this}");
+                
                 return task.Result;
             }
 
@@ -215,6 +217,7 @@ namespace Nethermind.Network.P2P
                 long bytesPerMillisecond = (long) ((decimal) request.ResponseSize / Math.Max(1, elapsed));
                 if (Logger.IsTrace) Logger.Trace($"{this} speed is {request.ResponseSize}/{elapsed} = {bytesPerMillisecond}");
 
+                // Logger.Info($"Received {task.Result.Length} headers out of {request.Message.MaxHeaders} with size {request.ResponseSize}");
                 StatsManager.ReportTransferSpeedEvent(Session.Node, TransferSpeedType.Headers, bytesPerMillisecond);
                 return task.Result;
             }
