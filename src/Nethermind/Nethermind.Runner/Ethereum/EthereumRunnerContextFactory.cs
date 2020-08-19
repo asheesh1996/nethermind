@@ -55,6 +55,12 @@ namespace Nethermind.Runner.Ethereum
             IChainSpecLoader loader = new ChainSpecLoader(ethereumJsonSerializer);
 
             ChainSpec chainSpec = loader.LoadFromFile(chainSpecFile);
+            using (StreamReader r = new StreamReader(chainSpecFile))
+            {
+                string json = r.ReadToEnd();
+                Console.WriteLine("CHAINSPEC FROM HIVE:");
+                Console.WriteLine(json);
+            }
             
             logManager.SetGlobalVariable("chain", chainSpec.Name);
             logManager.SetGlobalVariable("chainId", chainSpec.ChainId);

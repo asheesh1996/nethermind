@@ -140,6 +140,12 @@ namespace Nethermind.Runner.Hive
                 _blockTree.SuggestBlock(block);
 
                 if (_logger.IsInfo) _logger.Info($"HIVE suggested {block.ToString(Block.Format.Short)}, now best suggested header {_blockTree.BestSuggestedHeader}, head {_blockTree.Head?.Header?.ToString(BlockHeader.Format.Short)}");
+
+                if(!_blockTree.BestSuggestedHeader.Hash.Equals(block.Hash))
+                {
+                    Console.WriteLine("WRONG SUGGESTED BLOCK NOT WHAT HIVE SUGGESTED");
+                    throw new Exception("New best suggested is not what Hive suggested!");
+                }
             }
             catch (InvalidBlockException e)
             {
